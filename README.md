@@ -52,7 +52,7 @@ Filter by passwords that contain all of "@, #, !, ^", using 32 threads (to stdou
 ```
 
 ## Piping Examples
-It is also possible to chain multiple comply statements together, since --stdin is supported. Other options used with the --default parameter may not produce the best results because of how the code is written. It is instead recommended to chain --default before or after the use of other options.
+It is also possible to chain multiple comply statements together, since --stdin is supported. Other options used with the --default parameter may not produce the best results because of clashing filtration rules. It is instead recommended to chain --default before or after the use of other options.
 
 Multiple filters plus --default, and output to new_wordlist.txt
 ```
