@@ -5,6 +5,8 @@ This is a tool written in C# that is designed to reduce wordlists down with give
 
 I wrote this tool because I found myself struggling to whittle down wordlists for cracking active directory account hashes. Since wordlists such as [rockyou.txt](https://github.com/praetorian-inc/Hob0Rules/blob/master/wordlists/rockyou.txt.gz) contain passwords that definitely won't be accepted by active directory's default configuration, I found that a lot of (actual and computational) time was wasted on candidates that would never get matches.
 
+Organically, the program grew to support other filters, such as known minimum/maximum/exact length, character inclusion or exclusion, and more. Feel free to commit / request features!
+
 # Prerequisites
 This program is written in .NET 7.0 - you can either compile it yourself or use the [releases](https://github.com/Hzoid/comply/releases) page to download either the Linux or Windows pre-compiled binaries.
 
