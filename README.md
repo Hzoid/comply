@@ -6,8 +6,16 @@ This is a tool written in C# that is designed to reduce wordlists down with give
 I wrote this tool because I found myself struggling to whittle down wordlists such as rockyou.txt for cracking active directory accounts. Since wordlists such as [rockyou.txt](https://github.com/praetorian-inc/Hob0Rules/blob/master/wordlists/rockyou.txt.gz) contain passwords that definitely won't be accepted by active directory's default configuration, I found that a lot of (actual and computational) time was wasted in cracking. This tool was my solution to the issue.
 
 # Prerequisites
-This program is written in .NET 7.0 - you can either compile it yourself or use the [releases]() page to download either the Linux or Windows pre-compiled binaries.
+This program is written in .NET 7.0 - you can either compile it yourself or use the [releases](https://github.com/Hzoid/comply/releases) page to download either the Linux or Windows pre-compiled binaries.
 
+To compile yourself, using VSCode:
+```
+# *nix
+dotnet publish --configuration Release --runtime linux-x64 --self-contained true -p:PublishSingleFile=true
+
+# Windows
+dotnet publish --configuration Release --self-contained true -p:PublishSingleFile=true
+```
 # Examples
 
 ## Standard Examples
