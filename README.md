@@ -98,6 +98,6 @@ Copyright (C) 2023 Comply
   --version              Display version information.
 ```
 
-#TODO
+# TODO
 * Implement means of importing password policy data to create custom filtration profiles
 * Further validation checks / bug fixes
