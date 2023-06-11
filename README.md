@@ -1,7 +1,7 @@
 # Comply
 Stop wasting time cracking with useless wordlists! Make them comply.
 
-This is a tool written in C# that is designed to reduce wordlists down with given filters. It contains a profile (--default) which reduces wordlists down to the default [windows password policy](https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/password-must-meet-complexity-requirements).
+This is a wordlist manipulation tool written in C#. It contains a profile (--default) which reduces wordlists down to the default [windows password policy](https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/password-must-meet-complexity-requirements).
 
 I wrote this tool because I found myself struggling to whittle down wordlists for cracking active directory account hashes. Since wordlists such as [rockyou.txt](https://github.com/praetorian-inc/Hob0Rules/blob/master/wordlists/rockyou.txt.gz) contain passwords that definitely won't be accepted by active directory's default configuration, I found that a lot of (actual and computational) time was wasted on candidates that would never get matches.
 
