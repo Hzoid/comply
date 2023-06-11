@@ -26,6 +26,11 @@ Filter by passwords conforming with the default windows password policy, and out
 ./comply --default --output ./new_wordlist.txt rockyou.txt
 ```
 
+Filter using the deafault profile, complete with windows displayNames and samAccountNames (if you are confused, refer to the above link about windows default configurations):
+```
+./comply --default --names "John M Smith,john.smith,Mary P Sue,mpsue15" rockyou.txt
+```
+
 Filter by only passwords with an exact length of 12, use 16 threads (to stdout)
 ```
 ./comply --length=12  --threads 16 rockyou.txt
