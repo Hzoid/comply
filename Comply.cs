@@ -9,23 +9,29 @@ using CommandLine;
 
 namespace comply
 {
-    class Program
+    class Comply
     {
         public class Options
         {
-            [Option('d', "default", Default = false, HelpText = "Apply the default windows password complexity requirement rules. Compatible with other filters.")]
+            [Option("default", Default = false, HelpText = "Apply the default windows password complexity requirement rules. Compatible with other filters.")]
             public bool IsDefault { get; set; }
 
             [Option('n', "names", Separator = ',', HelpText = "List of names, separated by commas.")]
-            public IEnumerable<string> Names { get; set; }
+            public IEnumerable<string>? Names { get; set; }
+
+            [Option('s', "special", HelpText = "Minimum special characters to allow.")]
+            public int? SpecialCount { get; set; }
+
+            [Option('d', "digits", HelpText = "Minimum digits to allow.")]
+            public int? DigitsCount { get; set; }
 
             [Option('v', "verbose", Default = false, HelpText = "Display statistics after filtering the wordlist.")]
             public bool Verbose { get; set; }
 
             [Option('p', "path", HelpText = "Wordlist to apply fitlers to")]
-            public string FilePath { get; set; }
+            public string? FilePath { get; set; }
 
-            [Option("stdin", HelpText = "Read wordlist from standard input.", Default = false)]
+            [Option("stdin", Default = false, HelpText = "Read wordlist from standard input.")]
             public bool UseStandardInput { get; set; }
 
             [Option("min-length", HelpText = "Minimum password length to allow.")]
@@ -34,7 +40,7 @@ namespace comply
             [Option("max-length", HelpText = "Maximum password length to allow.")]
             public int? MaxLength { get; set; }
 
-            [Option('u', "uppercase", HelpText = "Minimum uppercase characters to allow.")]
+            [Option('u', "uppers", HelpText = "Minimum uppercase characters to allow.")]
             public int? UppercaseCount { get; set; }
 
             [Option('l', "length", HelpText = "Allow only entries containing this exact length.")]
@@ -44,25 +50,25 @@ namespace comply
             public int? Threads { get; set; }
 
             [Option("starts-with", HelpText = "Only allow entries that start with this string.")]
-            public string StartsWith { get; set; }
+            public string? StartsWith { get; set; }
 
             [Option("ends-with", HelpText = "Only allow entries that end with this string.")]
-            public string EndsWith { get; set; }
+            public string? EndsWith { get; set; }
 
             [Option("ignore-case", Default = true, HelpText = "(Default: true) Ignore case when using --starts-with and --ends-with")]
             public bool IgnoreCase { get; set; }
 
             [Option('e', "exclude", Separator = ',', HelpText = "Exclude entries containing any of these characters.")]
-            public IEnumerable<char> Exclude { get; set; }
+            public IEnumerable<char>? Exclude { get; set; }
 
-            [Option('i', "include", Separator = ',', HelpText = "Include only entries containing at least one of these characters.")]
-            public IEnumerable<char> Include { get; set; }
+            [Option('i', "include", Separator = ',', HelpText = "Include only entries containing at least one of these characters. Can be used to define custom charsets.")]
+            public IEnumerable<char>? Include { get; set; }
 
             [Option("include-exclusive", Separator = ',', HelpText = "Include entries containing ALL of the specified characters.")]
-            public IEnumerable<char> IncludeExclusive { get; set; }
+            public IEnumerable<char>? IncludeExclusive { get; set; }
 
             [Option('o', "output", HelpText = "Output file to write the updated wordlist to.")]
-            public string OutputFilePath { get; set; }
+            public string? OutputFilePath { get; set; }
         }
 
         static void Main(string[] args)
@@ -74,62 +80,62 @@ namespace comply
                     if ((options.UseStandardInput && !string.IsNullOrEmpty(options.FilePath)) || (!options.UseStandardInput && string.IsNullOrEmpty(options.FilePath)))
                     {
                         Console.Error.WriteLine("Error: You must specify exactly one of --stdin or --path.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.Length.HasValue && (options.MinLength.HasValue || options.MaxLength.HasValue))
                     {
                         Console.Error.WriteLine("Error: If 'length' is specified, neither 'min-length' nor 'max-length' should be supplied.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.MinLength.HasValue && options.MaxLength.HasValue && options.MinLength > options.MaxLength)
                     {
                         Console.Error.WriteLine("Error: 'min-length' cannot be larger than 'max-length'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.UppercaseCount.HasValue && options.UppercaseCount < 0)
                     {
                         Console.Error.WriteLine("Error: 'uppercase' cannot be smaller than 0.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.UppercaseCount.HasValue && options.MinLength.HasValue && options.UppercaseCount < options.MinLength)
                     {
                         Console.Error.WriteLine("Error: 'uppercase' cannot be smaller than 'min-length'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.UppercaseCount.HasValue && options.MaxLength.HasValue && options.UppercaseCount > options.MaxLength)
                     {
                         Console.Error.WriteLine("Error: 'uppercase' cannot be larger than 'max-length'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.UppercaseCount.HasValue && options.Length.HasValue && options.UppercaseCount > options.Length)
                     {
                         Console.Error.WriteLine("Error: 'uppercase' cannot be larger than 'length'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (!string.IsNullOrEmpty(options.FilePath) && (!File.Exists(options.FilePath) || !HasReadPermissionOnFile(options.FilePath)))
                     {
                         Console.Error.WriteLine("Error: The provided 'path' must be a valid and readable file.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.Threads.HasValue && options.Threads < 1)
                     {
                         Console.Error.WriteLine("Error: 'threads' must be 1 or more.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
                     if (!string.IsNullOrEmpty(options.StartsWith) && 
                         ((options.MaxLength.HasValue && options.StartsWith.Length > options.MaxLength) || 
                         (options.Length.HasValue && options.StartsWith.Length > options.Length)))
                     {
                         Console.Error.WriteLine("Error: 'starts-with' string cannot be longer than 'max-length' or 'length'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (!string.IsNullOrEmpty(options.EndsWith) && 
@@ -137,25 +143,25 @@ namespace comply
                         (options.Length.HasValue && options.EndsWith.Length > options.Length)))
                     {
                         Console.Error.WriteLine("Error: 'ends-with' string cannot be longer than 'max-length' or 'length'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.Include != null && options.Include.Any() && options.IncludeExclusive != null && options.IncludeExclusive.Any())
                     {
                         Console.Error.WriteLine("Error: Options 'include' and 'include-exclusive' are mutually exclusive");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.Include != null && options.Include.Any() && options.Exclude != null && options.Include.Any(c => options.Exclude.Contains(c)))
                     {
                         Console.Error.WriteLine("Error: Characters specified in 'include' cannot be present in 'exclude'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.IncludeExclusive != null && options.IncludeExclusive.Any() && options.Exclude != null && options.IncludeExclusive.Any(c => options.Exclude.Contains(c)))
                     {
                         Console.Error.WriteLine("Error: Characters specified in 'include-exclusive' cannot be present in 'exclude'.");
-                        Environment.Exit(0);
+                        Environment.Exit(1);
                     }
 
                     if (options.Exclude != null && options.Exclude.Any())
@@ -163,19 +169,30 @@ namespace comply
                         if (!string.IsNullOrEmpty(options.StartsWith) && options.Exclude.Any(c => options.StartsWith.Contains(c)))
                         {
                             Console.Error.WriteLine("Error: Characters in 'exclude' cannot be present in 'starts-with' string.");
-                            Environment.Exit(0);
+                            Environment.Exit(1);
                         }
 
                         if (!string.IsNullOrEmpty(options.EndsWith) && options.Exclude.Any(c => options.EndsWith.Contains(c)))
                         {
                             Console.Error.WriteLine("Error: Characters in 'exclude' cannot be present in 'ends-with' string.");
-                            Environment.Exit(0);
+                            Environment.Exit(1);
                         }
                     }
 
+                    if (options.IsDefault)
+                    {
+                        if (options.MinLength.HasValue || options.MaxLength.HasValue || options.Length.HasValue ||
+                            !string.IsNullOrEmpty(options.StartsWith) || !string.IsNullOrEmpty(options.EndsWith))
+                        {
+                            Console.Error.WriteLine("Error: The --default option is not compatible with --min-length, --max-length, --length, --starts-with, or --ends-with.");
+                            Environment.Exit(1);
+                        }
+                    }
+
+                  
+                    // Default Threads value
                     int threadsCount = options.Threads.HasValue && options.Threads.Value > 0 ? options.Threads.Value : 1;
 
-                    // Read the file lines into memory
                     List<string> allLines = new List<string>();
 
                     // Check if --stdin option is used
@@ -193,7 +210,7 @@ namespace comply
                         else
                         {
                             Console.Error.WriteLine("Error: No data provided via standard input.");
-                            Environment.Exit(0);
+                            Environment.Exit(1);
                         }
                     }
                     else
@@ -206,7 +223,7 @@ namespace comply
                         catch (Exception ex)
                         {
                             Console.Error.WriteLine($"Error reading file: {ex.Message}");
-                            Environment.Exit(0);
+                            Environment.Exit(1);
                         }
                     }
 
@@ -268,8 +285,8 @@ namespace comply
 
                     if (options.Verbose)
                     {
-                        Console.WriteLine($"{removedEntriesCount} entries from {options.FilePath} were removed.");
-                        Console.WriteLine($"Wordlist {newWordListPath} contains {reassembledWordList.Count}.");
+                        Console.WriteLine($"\n{removedEntriesCount} entries from {options.FilePath} were removed.");
+                        Console.WriteLine($"Output contains {reassembledWordList.Count}.");
                     }
                 });
         }
@@ -291,45 +308,6 @@ namespace comply
                     isPasswordValid = IsValidWindowsPassword(entry, names);
                 }
 
-                if (!options.IsDefault || (options.IsDefault && options.Length.HasValue && entry.Length == options.Length))
-                {
-                    if (options.Length.HasValue && entry.Length != options.Length)
-                    {
-                        isPasswordValid = false;
-                    }
-                    else if (options.IsDefault && options.Length.HasValue && !warnedOverwrite)
-                    {
-                        Console.Error.WriteLine("Warning: You are overwriting the default Windows password policy filtering options.");
-                        warnedOverwrite = true;
-                    }
-                }
-
-                if (!options.IsDefault || (options.IsDefault && options.MinLength.HasValue && entry.Length >= options.MinLength))
-                {
-                    if (options.MinLength.HasValue && entry.Length < options.MinLength)
-                    {
-                        isPasswordValid = false;
-                    }
-                    else if (options.IsDefault && options.MinLength.HasValue && !warnedOverwrite)
-                    {
-                        Console.Error.WriteLine("Warning: You are overwriting the default Windows password policy filtering options.");
-                        warnedOverwrite = true;
-                    }
-                }
-
-                if (!options.IsDefault || (options.IsDefault && options.MaxLength.HasValue && entry.Length <= options.MaxLength))
-                {
-                    if (options.MaxLength.HasValue && entry.Length > options.MaxLength)
-                    {
-                        isPasswordValid = false;
-                    }
-                    else if (options.IsDefault && options.MaxLength.HasValue && !warnedOverwrite)
-                    {
-                        Console.Error.WriteLine("Warning: You are overwriting the default Windows password policy filtering options.");
-                        warnedOverwrite = true;
-                    }
-                }
-
                 // Include/Exclude/Include-Exclusive conditions
                 bool excludeCondition = options.Exclude == null || !options.Exclude.Any(c => entry.Contains(c));
                 bool includeCondition;
@@ -349,10 +327,15 @@ namespace comply
                     includeExclusiveCondition = true; // Make includeExclusiveCondition true as --include is being used
                 }
 
+                // This confusing boolean operation is thanks to ChatGPT
+                // It looks cleaner than just a bunch of IF statements returning true / false
+                // This handles Uppercase, special chars, digits, Startswith, Endswith, includes(exclusive) and excludes.
                 return isPasswordValid &&
                     (options.UppercaseCount == null || entry.Count(char.IsUpper) >= options.UppercaseCount) &&
                     (string.IsNullOrEmpty(options.StartsWith) || entry.StartsWith(options.StartsWith, stringComparison)) &&
                     (string.IsNullOrEmpty(options.EndsWith) || entry.EndsWith(options.EndsWith, stringComparison)) &&
+                    (!options.SpecialCount.HasValue || entry.Count(c => !char.IsLetterOrDigit(c)) >= options.SpecialCount.Value) &&
+                    (!options.DigitsCount.HasValue || entry.Count(char.IsDigit) >= options.DigitsCount.Value) &&
                     excludeCondition &&
                     includeCondition &&
                     includeExclusiveCondition;
@@ -390,6 +373,7 @@ namespace comply
 
             return categories >= 3 && password.Length >= 6;
         }
+
         // Is file readable
         static bool HasReadPermissionOnFile(string filePath)
         {
